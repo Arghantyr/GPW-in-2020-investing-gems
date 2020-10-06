@@ -96,6 +96,7 @@ def get_instrument_info(driver, link_list = None):
         
         # Save all the addresses - href in the stock name or near it
         params_css = ".col-md-8.col-lg-9.margin-bottom-20"
+        params_id = "company-card-tabs"
         indicators_tab_css = ".panel.panel-default.nav-item.indicatorsTab"
         indicators_click_css = ".accordion-toggle.nav-link"
         indicators_css = ".collapse-indicatorsTab"
@@ -105,17 +106,21 @@ def get_instrument_info(driver, link_list = None):
         try:
             
             # Enter the indicators table
-            WebDriverWait(driver, timeout=25, poll_frequency=0.5).until(element_to_be_clickable((By.CSS_SELECTOR, indicators_tab_css))).find_element(By.CSS_SELECTOR, indicators_click_css).click()
+            WebDriverWait(driver, timeout=25, poll_frequency=0.5
+                         ).until(presence_of_element_located((By.ID,
+                                                              params_id))
+                                ).find_element(By.CSS_SELECTOR,".nav-item.indicatorsTab"
+                                              ).find_element(By.CLASS_NAME, "nav-link").click()
 
             time.sleep(1.1 + np.random.random(1)[0]*0.3123)
 
-            params = driver.find_element(By.CSS_SELECTOR, params_css).find_element(By.CSS_SELECTOR, indicators_tab_css)
+            params = driver.find_element(By.ID, params_id).find_element(By.ID, indicators_id)
 
             # get the name of the instrument
             instrument_name = driver.find_element(By.CSS_SELECTOR, params_css).find_element(By.ID, name_id).text
 
             # tu znaleźć wszystkie tagi tr
-            indicators = params.find_element(By.ID, indicators_id).find_elements(By.TAG_NAME, "tr")
+            indicators = params.find_elements(By.TAG_NAME, "tr")
             Instrument_data = pd.DataFrame({i.find_element(By.TAG_NAME, "th").text: [i.find_element(By.TAG_NAME, "td").text] for i in indicators})
 
             # Save info about the company
@@ -141,4 +146,3 @@ def get_instrument_info(driver, link_list = None):
     Instrument_info.reset_index(inplace=True, drop=True)
         
     return Instrument_info
-    
