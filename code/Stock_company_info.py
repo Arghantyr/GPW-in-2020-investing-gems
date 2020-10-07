@@ -146,3 +146,90 @@ def get_instrument_info(driver, link_list = None):
     Instrument_info.reset_index(inplace=True, drop=True)
         
     return Instrument_info
+
+
+
+def get_stock_history(driver, start_date = r"2019-01-01", end_date = r"2020-10-06", stock_symbols = None):
+
+    # Get all the historical data: daily prices and volumes
+    # The data will be downloaded from the TopStock.pl website: https://www.topstock.pl
+
+    # Set the default download directory
+    download_path = "..."
+    prefs = {'download.default_directory' : download_path}
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_experimental_option('prefs', prefs)
+
+    prox = Proxy()
+    prox.proxy_type = ProxyType.MANUAL
+    prox.http_proxy = "188.242.27.193:8080"
+
+    capabilities = webdriver.DesiredCapabilities.CHROME
+    prox.add_to_capabilities(capabilities)
+
+    driver = webdriver.Chrome(executable_path=driver_path, desired_capabilities=capabilities,
+                              options=chrome_options)
+
+    # Initialize the file counter
+    file_counter = 0
+
+    # Get the data for each stock symbol
+    for s in range(0, stock_symbols.shape[0], 1):
+
+        file_counter += 1
+
+        sym = stock_symbols.loc[s]
+
+        instrument_url = "https://www.topstock.pl/stock/stock/download_history/{}?date_from={}&date_to={}".format(sym, start_date, end_date)
+
+        # Go the the instrument site
+        driver.get(instrument_url)
+
+        # wait 2.7s until the change happens
+        t = 3.7 + np.random.random(1)[0]*1.312936
+        time.sleep(t)
+
+        # wait until the file downloads
+        len_lof = len([f for f in os.listdir(file_path) if f[-4:] == ".xls"])
+
+        t = 9.7 + np.random.random(1)[0]*4.312936
+
+        time.sleep(t)
+
+        len_lof = len([f for f in os.listdir(file_path) if f[-4:] == ".xls"])
+
+        # Change the name of the downloaded file to match the symbol
+        list_of_files = os.listdir(file_path)
+        list_of_times = [os.path.getmtime(file_path + f) for f in list_of_files]
+        max_time_index = list_of_times.index(max(list_of_times))
+        latest_file = list_of_files[max_time_index]
+
+        new_name = sym + "_data_{}_{}.xls".format(start_date, end_date)
+
+        original_path = file_path + latest_file
+        modified_path = file_path + new_name
+        os.rename(original_path, modified_path)
+    
+    driver.quit()
+    
+"""
+The files are downloaded as .xls but the formatting is off and pandas.read_excel throws CompDocError.
+A way around this is, e.g. open the file through olefile package and then feed it to the pandas.read_excel
+function. It is safer to save the files as csv for further processing.
+"""
+
+import olefile
+
+def fix_broken_XLS(folder_name=None):
+
+    list_of_xls = [i for i in os.listdir(folder_name) if i[-4:] == ".xls"]
+
+    for xls in list_of_xls:
+
+        broken_file = olefile.OleFileIO("/Users/Ligol/Documents/Jakies_inne_dokumenty/Analizy/Finansowe/Stock_data/ZUE_data_2019-01-03_2020-10-06.xls")
+
+        read_file = pd.read_excel(broken_file.openstream("Workbook"))
+        
+        changed_name = xls.replace(".xls", ".csv")
+        
+        read_file.to_csv(folder_name + changed_name, index=False)
