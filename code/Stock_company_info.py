@@ -226,7 +226,7 @@ def fix_broken_XLS(folder_name=None):
 
     for xls in list_of_xls:
 
-        broken_file = olefile.OleFileIO("/Users/Ligol/Documents/Jakies_inne_dokumenty/Analizy/Finansowe/Stock_data/ZUE_data_2019-01-03_2020-10-06.xls")
+        broken_file = olefile.OleFileIO(folder_name + xls)
 
         read_file = pd.read_excel(broken_file.openstream("Workbook"))
         
