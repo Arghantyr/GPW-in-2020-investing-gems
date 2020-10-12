@@ -220,7 +220,7 @@ function. It is safer to save the files as csv for further processing.
 
 import olefile
 
-def fix_broken_XLS(folder_name=None):
+def fix_broken_XLS(folder_name = "/Users/.../Stock_data"):
 
     list_of_xls = [i for i in os.listdir(folder_name) if i[-4:] == ".xls"]
 
@@ -233,3 +233,74 @@ def fix_broken_XLS(folder_name=None):
         changed_name = xls.replace(".xls", ".csv")
         
         read_file.to_csv(folder_name + changed_name, index=False)
+        
+"""
+The function below takes the csv files from the Stock_data folder and computes the variances and differences
+based on the split dates, e.g.:
+
+# Quarterly variances and differences
+split dates = ["2019-01-01", "2019-04-01", "2019-07-01", "2019-10-01", "2020-01-01"]
+
+The dates below were chosen to compare the period of increased COVID-19 panic in Poland (Q1 2020)
+to the last year (2019). The other period shows how much the company managed to go through the crisis,
+by providing information on the variance and difference in Q2-4 for 2019 and 2020.
+"""
+       
+def stock_params(folder_path = "/Users/.../Stock_data",
+                 split_dates: list = None, prop = None, date = None):
+    
+    """
+    The variances and differences are in %.
+    """
+    
+    file_list = os.listdir(folder_path)
+    csv_list = [i for i in file_list if i[-4:] == ".csv"]
+    
+    labels = ["19Q1", "19Q24", "20Q1", "20Q24"]
+    dates_list = ["2019-01-01","2019-05-01","2020-01-01","2020-05-01","2021-01-01"]
+
+    interval_frames = [(split_dates[i], split_dates[i+1]) for i in range(len(split_dates)-1)]
+    
+    result = pd.DataFrame()
+    
+    for csv in csv_list:
+        sym = re.search(r"(\w+)_data", csv).group(1)
+        #ind = pd.Index(Stock_full_info["Symbol"]).get_loc(sym)
+        
+        dataset = pd.read_csv(folder_path + csv)
+
+        params = {}
+        for d in range(len(interval_frames)):
+
+            label = labels[d]
+            var_label = label + "_var"
+            dif_label = label + "_dif"
+
+            interval = interval_frames[d]
+            start = interval[0]
+            end = interval[1]
+            condition = (dataset[date] >= start) & (dataset[date] < end)
+            subset = dataset[condition]
+
+            try:
+                begin_value = subset[subset[date] == subset[date].min()][prop].values[0]
+                end_value = subset[subset[date] == subset[date].max()][prop].values[0]
+                
+                difference = 100 * (end_value - begin_value) / begin_value
+            except IndexError:
+                difference = np.nan
+                
+            variance = 100 * subset[prop].var() / subset[prop].mean()
+            
+            # Get the variance
+            params[var_label] = [variance]
+
+            # And the difference
+            params[dif_label] = [difference]
+
+        params["Symbol"] = sym
+        params = pd.DataFrame(params)
+
+        result = pd.concat([result, params], axis=0)
+        
+    return result
