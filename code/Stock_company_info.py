@@ -247,7 +247,8 @@ by providing information on the variance and difference in Q2-4 for 2019 and 202
 """
        
 def stock_params(folder_path = "/Users/Ligol/Documents/Jakies_inne_dokumenty/Analizy/Finansowe/Stock_data",
-                 split_dates: list = None, prop = None, date = None):
+                 split_dates: list = ["2019-01-01","2019-04-01","2020-01-01","2020-04-01","2021-01-01"],
+                 labels = ["19Q1", "19Q24", "20Q1", "20Q24"], prop = None, date = None):
     
     """
     The variances and differences are in %.
