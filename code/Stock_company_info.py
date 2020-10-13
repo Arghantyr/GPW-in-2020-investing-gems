@@ -246,7 +246,7 @@ to the last year (2019). The other period shows how much the company managed to 
 by providing information on the variance and difference in Q2-4 for 2019 and 2020.
 """
        
-def stock_params(folder_path = "/Users/.../Stock_data",
+def stock_params(folder_path = "/Users/Ligol/Documents/Jakies_inne_dokumenty/Analizy/Finansowe/Stock_data",
                  split_dates: list = None, prop = None, date = None):
     
     """
@@ -257,7 +257,7 @@ def stock_params(folder_path = "/Users/.../Stock_data",
     csv_list = [i for i in file_list if i[-4:] == ".csv"]
     
     labels = ["19Q1", "19Q24", "20Q1", "20Q24"]
-    dates_list = ["2019-01-01","2019-05-01","2020-01-01","2020-05-01","2021-01-01"]
+    dates_list = ["2019-01-01","2019-04-01","2020-01-01","2020-04-01","2021-01-01"]
 
     interval_frames = [(split_dates[i], split_dates[i+1]) for i in range(len(split_dates)-1)]
     
